@@ -83,7 +83,7 @@ public class KNN extends Classifier {
                 File file = retrievals[i].docRef.file;
                 Integer category = this.documentToCategory.get(file);
                 if (category == null) {
-                    System.out.println("Error finding category for " + retrievals[i].docRef)
+                    System.out.println("Error finding category for " + retrievals[i].docRef);
                     continue;
                 }
                 results[category] += 1.0;

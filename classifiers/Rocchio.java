@@ -27,7 +27,7 @@ public class Rocchio extends Classifier {
     * @param categories The array of Strings containing the category names
     * @param neg True if we are using modified version of Rocchio
     */
-    public Rocchio(String[] categories, neg) {
+    public Rocchio(String[] categories, boolean neg) {
         this.categories = categories;
         this.prototypes = new HashMapVector[categories.length];
         this.neg = neg;
@@ -57,7 +57,7 @@ public class Rocchio extends Classifier {
     /**
     * Returns neg
     */
-    public int getNeg() {
+    public boolean getNeg() {
         return this.neg;
     }
     
@@ -108,7 +108,7 @@ public class Rocchio extends Classifier {
             // Prototype at i is the prototype for Category i.
             if (this.neg) {
                 // subtract for all other categories
-                for (i = 0; i < this.prototypes.length; i++) {
+                for (int i = 0; i < this.prototypes.length; i++) {
                     if (i == categoryIndex) {
                         this.prototypes[i].add(v);
                     }
