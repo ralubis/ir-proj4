@@ -15,7 +15,7 @@ import ir.utilities.*;
 public class KNN extends Classifier {
 
     public static final String name = "KNN";
-    protected int K;
+    protected int K = 5;
     public InvertedIndex index;
 
     protected HashMap<File, Integer> documentToCategory;
@@ -29,6 +29,17 @@ public class KNN extends Classifier {
     public KNN(String[] categories, int K) {
         this.categories = categories;
         this.K = K;
+        this.index = null;
+        this.documentToCategory = new HashMap<File, Integer>();
+    }
+
+    /**
+    * Create a new K Nearest Neighbors classifier with these attributes
+    *
+    * @param categories The array of Strings containing the category names
+    */
+    public KNN(String[] categories) {
+        this.categories = categories;
         this.index = null;
         this.documentToCategory = new HashMap<File, Integer>();
     }
@@ -82,7 +93,4 @@ public class KNN extends Classifier {
         // Take top K retrievals, and choose majority.
         return categoryIndex == testExample.getCategory();
     }
-
-
-
 }

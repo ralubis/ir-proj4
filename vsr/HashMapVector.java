@@ -202,6 +202,9 @@ public class HashMapVector {
    * current vector is shorter than otherVector)
    */
   public double cosineTo(HashMapVector otherVector, double length) {
+    if (length == 0) {
+      return 0;
+    }
     // Stores sum of squares of current vector elements
     double sum = 0;
     // Stores running sum for dot product of two vectors
@@ -216,6 +219,9 @@ public class HashMapVector {
       // Update dot product sum and sum of squares
       dotProd += weight * otherWeight;
       sum += weight * weight;
+    }
+    if (sum == 0) {
+      return 0;
     }
     // cosine is dot product over product of lengths
     return (dotProd / (Math.sqrt(sum) * length));
