@@ -68,30 +68,46 @@ public class Rocchio extends Classifier {
     * @param trainExamples The vector of training examples
     */
     public void train(List<Example> trainExamples) {
+        // index to find IDFs
         this.index = new InvertedIndex(trainExamples);
+        
+        // Initialize prototypes
         for (int i = 0; i < this.prototypes.length; i++) {
             this.prototypes[i] = new HashMapVector();
         }
 
+        // For each training example...
         for (Example ex: trainExamples) {
+            // HM Vector holding only TF
             HashMapVector exampleVector = ex.getHashMapVector();
+            // Construct a new HM Vector to hold each terms TFIDF
             HashMapVector v = new HashMapVector();
+
+            // For each Token in example HM Vector...
             for (Map.Entry<String, Weight> entry : exampleVector.entrySet()) {
+                // Get token
                 String token = entry.getKey();
+                // Get TF of token
                 int count = (int) entry.getValue().getValue();
+                // Get TokenInfo of token, which holds idf of a token
                 TokenInfo tokenInfo = this.index.tokenHash.get(token);
+                // Compute TFIDF of token.
                 v.increment(token, count * tokenInfo.idf);
             }
             // normalize
             double maxWeight = v.maxWeight();
+            // Avoid divide by zero or infinity
             if (maxWeight == 0 || maxWeight == Double.NEGATIVE_INFINITY) {
                 v.multiply(0);
             }
             else {
                 v.multiply(1.0 / v.maxWeight());
             }
+            // Cateogory index
             int categoryIndex = ex.getCategory();
+            // Prototype at i is the prototype for Category i.
             if (this.neg) {
+                // subtract for all other categories
                 for (i = 0; i < this.prototypes.length; i++) {
                     if (i == categoryIndex) {
                         this.prototypes[i].add(v);
@@ -102,7 +118,8 @@ public class Rocchio extends Classifier {
                 }
             }
             else {
-                this.prototypes[i].add(v);
+                // default just add to category i
+                this.prototypes[categoryIndex].add(v);
             }
         }
     }
@@ -114,11 +131,15 @@ public class Rocchio extends Classifier {
     * @param testExample The test example to be categorized
     */
     public boolean test(Example testExample) {
+        // Get HM Vector
         HashMapVector vector = testExample.getHashMapVector();
+        // Initialize Results
         double[] results = new double[this.prototypes.length];
+        // Find Cosine Similarity to each prototype
         for (int i = 0; i < this.prototypes.length; i++) {
             results[i] = vector.cosineTo(this.prototypes[i]);
         }
+        // Choose Argmax
         int categoryIndex = this.argMax(results);
 
         // Take top K retrievals, and choose majority.
