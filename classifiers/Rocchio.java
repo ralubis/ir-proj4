@@ -16,6 +16,7 @@ public class Rocchio extends Classifier {
 
     public static final String name = "Rocchio";
     protected HashMapVector[] prototypes;
+    protected double[] prototypeLengths;
     public InvertedIndex index;
 
     protected boolean neg;
@@ -30,6 +31,7 @@ public class Rocchio extends Classifier {
     public Rocchio(String[] categories, boolean neg) {
         this.categories = categories;
         this.prototypes = new HashMapVector[categories.length];
+        this.prototypeLengths = new double[categories.length];
         this.neg = neg;
         this.index = null;
     }
@@ -80,47 +82,43 @@ public class Rocchio extends Classifier {
         for (Example ex: trainExamples) {
             // HM Vector holding only TF
             HashMapVector exampleVector = ex.getHashMapVector();
-            // Construct a new HM Vector to hold each terms TFIDF
-            HashMapVector v = new HashMapVector();
-
-            // For each Token in example HM Vector...
-            for (Map.Entry<String, Weight> entry : exampleVector.entrySet()) {
-                // Get token
-                String token = entry.getKey();
-                // Get TF of token
-                int count = (int) entry.getValue().getValue();
-                // Get TokenInfo of token, which holds idf of a token
-                TokenInfo tokenInfo = this.index.tokenHash.get(token);
-                // Compute TFIDF of token.
-                v.increment(token, count * tokenInfo.idf);
-            }
             // normalize
             double maxWeight = exampleVector.maxWeight();
-            // Avoid divide by zero or infinity
-            if (maxWeight == 0 || maxWeight == Double.NEGATIVE_INFINITY) {
-                v.multiply(0);
-            }
-            else {
-                v.multiply(1.0 / maxWeight);
-            }
             // Cateogory index
             int categoryIndex = ex.getCategory();
-            // Prototype at i is the prototype for Category i.
-            if (this.neg) {
-                // subtract for all other categories
-                for (int i = 0; i < this.prototypes.length; i++) {
-                    if (i == categoryIndex) {
-                        this.prototypes[i].add(v);
+            // Avoid divide by zero or infinity
+            if (maxWeight != 0 && maxWeight != Double.NEGATIVE_INFINITY) {
+                // For each Token in example HM Vector...
+                for (Map.Entry<String, Weight> entry : exampleVector.entrySet()) {
+                    // Get token
+                    String token = entry.getKey();
+                    // Get TF of token
+                    int count = (int) entry.getValue().getValue();
+                    // Get TokenInfo of token, which holds idf of a token
+                    TokenInfo tokenInfo = this.index.tokenHash.get(token);
+                    // Compute TFIDF of token and normalize
+                    double tfidf = tokenInfo.idf * count / maxWeight;
+                    
+                    // Update Prototypes
+                    if (this.neg) {
+                        for (int i = 0; i < this.prototypes.length; i++) {
+                            if (i == categoryIndex) {
+                                this.prototypes[i].increment(token, tfidf);
+                            }
+                            else {
+                                this.prototypes[i].increment(token, -tfidf);
+                            }
+                        }
                     }
                     else {
-                        this.prototypes[i].subtract(v);
+                        this.prototypes[i].increment(token, tfidf);
                     }
                 }
             }
-            else {
-                // default just add to category i
-                this.prototypes[categoryIndex].add(v);
-            }
+        }
+
+        for (int i = 0; i < this.prototypes.length; i++) {
+            this.prototypeLengths[i] = this.prototypes[i].length();
         }
     }
 
@@ -137,7 +135,7 @@ public class Rocchio extends Classifier {
         double[] results = new double[this.prototypes.length];
         // Find Cosine Similarity to each prototype
         for (int i = 0; i < this.prototypes.length; i++) {
-            results[i] = vector.cosineTo(this.prototypes[i]);
+            results[i] = vector.cosineTo(this.prototypes[i], this.prototypeLengths[i]);
         }
         // Choose Argmax
         int categoryIndex = this.argMax(results);
