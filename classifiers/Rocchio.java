@@ -95,13 +95,13 @@ public class Rocchio extends Classifier {
                 v.increment(token, count * tokenInfo.idf);
             }
             // normalize
-            double maxWeight = v.maxWeight();
+            double maxWeight = exampleVector.maxWeight();
             // Avoid divide by zero or infinity
             if (maxWeight == 0 || maxWeight == Double.NEGATIVE_INFINITY) {
                 v.multiply(0);
             }
             else {
-                v.multiply(1.0 / v.maxWeight());
+                v.multiply(1.0 / maxWeight);
             }
             // Cateogory index
             int categoryIndex = ex.getCategory();
