@@ -111,7 +111,7 @@ public class Rocchio extends Classifier {
                         }
                     }
                     else {
-                        this.prototypes[i].increment(token, tfidf);
+                        this.prototypes[categoryIndex].increment(token, tfidf);
                     }
                 }
             }
