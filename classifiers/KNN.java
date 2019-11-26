@@ -50,19 +50,17 @@ public class KNN extends Classifier {
     public String getName() {
         return this.name;
     }
-
-    public int getK() {
-        return this.K;
-    }
     
     /**
-    * Trains the KNN classifier - estimates the prior probs and calculates the
-    * counts for each feature in different categories
+    * Trains the KNN classifier using an Inverted Index as
+    * described in the class slides.
     *
     * @param trainExamples The vector of training examples
     */
     public void train(List<Example> trainExamples) {
+        // Make an Inverted Index
         this.index = new InvertedIndex(trainExamples);
+        // Keep track of what File corresponds to what category.
         for (Example example: trainExamples) {
             this.documentToCategory.put(example.getDocument().file, example.getCategory());
         }
@@ -75,22 +73,30 @@ public class KNN extends Classifier {
     * @param testExample The test example to be categorized
     */
     public boolean test(Example testExample) {
+        // Get HM Vector.
         HashMapVector vector = testExample.getHashMapVector();
+        // Retrieve all retrievals of test HM Vector.
         Retrieval[] retrievals = this.index.retrieve(vector);
+        // Initialize results.
         double[] results = new double[this.categories.length];
+        // Take top K retrievals.
         for (int i = 0; i < K; i++) {
             if (i < retrievals.length) {
+                // Get file
                 File file = retrievals[i].docRef.file;
+                // Find Category
                 Integer category = this.documentToCategory.get(file);
                 if (category == null) {
                     System.out.println("Error finding category for " + retrievals[i].docRef);
                     continue;
                 }
+                // Increment count of category
                 results[category] += 1.0;
             }
         }
+        // Choose the category that appeared the most.
+        // If tie, choose randomly between the tied categories.
         int categoryIndex = this.argMax(results);
-        // Take top K retrievals, and choose majority.
         return categoryIndex == testExample.getCategory();
     }
 }

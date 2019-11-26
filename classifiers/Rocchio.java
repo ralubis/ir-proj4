@@ -23,7 +23,7 @@ public class Rocchio extends Classifier {
 
 
     /**
-    * Create a new K Nearest Neighbors classifier with these attributes
+    * Create a new Rocchio classifier with these attributes
     *
     * @param categories The array of Strings containing the category names
     * @param neg True if we are using modified version of Rocchio
@@ -37,35 +37,15 @@ public class Rocchio extends Classifier {
     }
 
     /**
-    * Create a new K Nearest Neighbors classifier with these attributes
-    *
-    * @param categories The array of Strings containing the category names
-    * @param neg True if we are using modified version of Rocchio
-    */
-    public Rocchio(String[] categories) {
-        this.categories = categories;
-        this.prototypes = new HashMapVector[categories.length];
-        this.neg = false;
-        this.index = null;
-    }
-
-    /**
     * Returns the name
     */
     public String getName() {
         return this.name;
     }
-
-    /**
-    * Returns neg
-    */
-    public boolean getNeg() {
-        return this.neg;
-    }
     
     /**
-    * Trains the Rocchio classifier - estimates the prior probs and calculates the
-    * counts for each feature in different categories
+    * Trains the Rocchio classifier - creates the HashMapVectors
+    * of each category prototype.
     *
     * @param trainExamples The vector of training examples
     */
@@ -116,14 +96,14 @@ public class Rocchio extends Classifier {
                 }
             }
         }
-
+        // Find lengths of prototypes.
         for (int i = 0; i < this.prototypes.length; i++) {
             this.prototypeLengths[i] = this.prototypes[i].length();
         }
     }
 
     /**
-    * Categorizes the test example using the trained KNN classifier, returning true if
+    * Categorizes the test example using the trained Rocchio classifier, returning true if
     * the predicted category is same as the actual category
     *
     * @param testExample The test example to be categorized
